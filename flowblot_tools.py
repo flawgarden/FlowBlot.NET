@@ -1,6 +1,5 @@
 import os
 import re
-import common_flowblot_info as info
 
 
 def get_files_by_regex(cur_path, regex):

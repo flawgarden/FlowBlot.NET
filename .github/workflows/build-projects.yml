@@ -23,4 +23,4 @@ jobs:
 
     - name: Build each project separately
       run: |
-        python check_build.py
+        ./check_build.py

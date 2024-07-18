@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import subprocess
 import os
 import platform
@@ -9,7 +11,7 @@ match platform.system():
         dotnet_build = ["dotnet", "build"]
     case _:
         print("Unsupported platform!")
-        exit(-1)
+        exit(1)
 
 
 def is_buildable():

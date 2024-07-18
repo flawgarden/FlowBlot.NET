@@ -2,20 +2,10 @@
 
 import subprocess
 import os
-import platform
-
-match platform.system():
-    case "Linux":
-        dotnet_build = ["xbuild"]
-    case "Windows":
-        dotnet_build = ["dotnet", "build"]
-    case _:
-        print("Unsupported platform!")
-        exit(1)
 
 
 def is_buildable():
-    return subprocess.run(dotnet_build,
+    return subprocess.run(["dotnet", "build"],
                           stdout=subprocess.DEVNULL).returncode == 0
 
 

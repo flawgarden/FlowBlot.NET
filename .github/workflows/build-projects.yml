@@ -16,10 +16,10 @@ jobs:
     - name: Install Python requirements
       run: pip install -r ./requirements.txt
 
-    - name: Install .NET 4.x build tool
-      run: |
-        sudo apt-get update
-        sudo apt-get install mono-xbuild
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 6.0.x
 
     - name: Build each project separately
       run: |

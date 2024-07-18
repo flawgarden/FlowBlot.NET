@@ -46,8 +46,7 @@ INPLACE_SOURCE_CALL_TEMPLATE = "\n".join((
 
 INPLACE_CODE_INDENT = "\t\t"
 
-INPLACE_CODE_USING = """
-using System;
+INPLACE_CODE_USING = """using System;
 using System.Diagnostics;
 using System.Data.SqlClient;
 using System.Web;

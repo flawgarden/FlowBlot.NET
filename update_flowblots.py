@@ -9,16 +9,13 @@ UPDATE_MARK = "updated"
 PROJECT_END = "</Project>"
 
 
-def find_all_files_in_dir_nr(directory):
-    files = os.listdir(directory)
+def find_files_in_dir(directory):
+    matching_files = []
+    for root, dirs, files in os.walk(directory):
+        for name in files:
+            matching_files.append(os.path.realpath(os.path.join(root, name)))
 
-    # append base dir
-    files = list(map(lambda x: os.path.join(directory, x), files))
-
-    # make sure each path is a file (and not a directory)
-    files = list(filter(lambda x: os.path.isfile(x), files))
-
-    return files
+    return matching_files
 
 
 def open_file_and_get_contents(file):
@@ -99,8 +96,7 @@ def update_code_contents(file_path):
 
 DECLARATIONS_TO_REMOVE = [r'(?s)<Reference Include="NLog">.*?</Reference>',
                           r'<PackageReference Include="NLog".*?/>',
-                          '<Reference Include="netstandard" />',
-                          r'<PackageReference Include="System.Data.DataSetExtensions".*?/>']
+                          '<Reference Include="netstandard" />']
 
 # spaces are used to keep up with the existing .csproj codestyle
 INCLUDE_DECLARATIONS = "\n".join(["",
@@ -126,7 +122,7 @@ def update_project_contents(file_path):
 
 
 def update_project_in_cwd(project_name):
-    project_files = find_all_files_in_dir_nr(".")
+    project_files = find_files_in_dir(".")
 
     # checking if the current project has already been updated
     if len(filter_by_extension(project_files, UPDATE_MARK)) > 0:
@@ -157,30 +153,17 @@ def update_project_in_cwd(project_name):
 
 def get_list_of_cwe_projects():
     cwe_regex = "CWE"
-    testcases_path = os.path.join('src', 'testcases')
-    cwes = []
+    testcases_path = os.path.join('.')
 
     # get the CWE directories in testcases folder
     cwe_dirs = os.listdir(testcases_path)
     cwe_dirs = map(lambda x: os.path.join(testcases_path, x), cwe_dirs)
 
     # only allow directories
-    cwe_dirs = filter(lambda x: os.path.isdir(x) and cwe_regex in x, cwe_dirs)
-
-    for cwe_dir in cwe_dirs:
-        cwe_sub_dirs = os.listdir(cwe_dir)
-
-        # check if the CWE is split into subdirectories
-        if 's01' in cwe_sub_dirs:
-            for sub_dir in cwe_sub_dirs:
-                cwes.append(os.path.join(cwe_dir, sub_dir))
-        else:
-            cwes.append(cwe_dir)
-
-    return cwes
+    return list(filter(lambda x: os.path.isdir(x) and cwe_regex in x, cwe_dirs))
 
 
-if __name__ == "__main__":
+def main():
     root = os.getcwd()
 
     cwe_projects = get_list_of_cwe_projects()
@@ -199,3 +182,7 @@ if __name__ == "__main__":
         os.chdir(root)
 
         print_with_timestamp("Successfully updated " + proj + "!\n")
+
+
+if __name__ == "__main__":
+    main()

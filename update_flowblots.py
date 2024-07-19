@@ -4,9 +4,11 @@ import os
 import re
 import subprocess
 import time
+import shutil
 
 UPDATE_MARK = "updated"
 PROJECT_END = "</Project>"
+PACKAGES_DIR = "packages"
 
 
 def find_files_in_dir(directory):
@@ -178,6 +180,10 @@ def main():
             print_with_timestamp(
                 "Could not update " + proj + "!\naborting...")
             exit(2)
+
+        # removing packages dir as it was intended for .NET Framework 4.8
+        if os.path.exists(PACKAGES_DIR):
+            shutil.rmtree(PACKAGES_DIR)
 
         os.chdir(root)
 

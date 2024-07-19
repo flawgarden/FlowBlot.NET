@@ -81,6 +81,11 @@ def insert_inplace_flows(csproj_path):
         if tools.does_contain_regex(info.FLOW_INPLACE_NAME_REGEX, line):
             return ""
 
+        if info.FLOWS_NAMESPACE_LINE in line:
+            add_line = line.replace(info.FLOWS_NAMESPACE_LINE,
+                                    info.FLOWS_NAMESPACE_LINE + "_inplace")
+            return line + add_line
+
         if tools.does_contain_regex(info.FLOW_NAME_REGEX, line):
             add_line = re.sub(info.FLOW_NAME_REGEX,
                               info.INPLACE_FLOW_NAME,

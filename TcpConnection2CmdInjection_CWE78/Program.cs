@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using FlowBlot.Flows;
+using FlowBlot.Flows_inplace;
 
 namespace FlowBlot
 {

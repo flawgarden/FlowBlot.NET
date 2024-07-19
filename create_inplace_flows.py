@@ -81,7 +81,12 @@ def insert_inplace_flows(csproj_path):
         if tools.does_contain_regex(info.FLOW_INPLACE_NAME_REGEX, line):
             return ""
 
-        if tools.does_contain_regex(info.FLOW_FILE_NAME_REGEX, line):
+        if info.FLOWS_NAMESPACE_LINE in line:
+            add_line = line.replace(info.FLOWS_NAMESPACE_LINE,
+                                    info.FLOWS_NAMESPACE_LINE + "_inplace")
+            return line + add_line
+
+        if tools.does_contain_regex(info.FLOW_NAME_REGEX, line):
             add_line = re.sub(info.FLOW_NAME_REGEX,
                               info.INPLACE_FLOW_NAME,
                               line)
@@ -99,6 +104,7 @@ def main():
         create_inplace_copy(flow)
 
     insert_inplace_flows(os.path.join("src", "FlowBlot.csproj"))
+    insert_inplace_flows(os.path.join("src", "Program.cs"))
     rewrite_source_and_sink(os.path.join("src", "Model", "Framework.cs"))
 
 

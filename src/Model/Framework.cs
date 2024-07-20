@@ -10,13 +10,14 @@ namespace FlowBlot.Model
     {
         public static string Source()
         {
-            // return user provided input
-            return String.Empty;
+			string data = string.Empty;
+			/* SOURCE GENERATED CODE */
+			return data;
         }
 
         public static void Sink(string input)
         {
-            // dangerous operation on input
+			/* SINK GENERATED CODE */
         }
     }
 }

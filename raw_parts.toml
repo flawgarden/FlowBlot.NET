@@ -1,0 +1,234 @@
+[[sinks]]
+name = "CmdInjection"
+cwe = 78
+code = """
+	String osCommand;
+	if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+	{
+		/* running on Windows */
+		osCommand = @"c:\\WINDOWS\\SYSTEM32\\cmd.exe /c dir ";
+	}
+	else
+	{
+		/* running on non-Windows */
+		osCommand = "/bin/ls ";
+	}
+	/* POTENTIAL FLAW: command injection */
+	Process process = Process.Start(osCommand + input);
+	process.WaitForExit();"""
+
+[[sinks]]
+name = "ShorthandCommand"
+cwe = 426
+code = """
+	/* FLAW: Execute command without the full path */
+	string badOsCommand;
+	string commandArgs;
+	if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+	{
+		badOsCommand = "ls";
+		commandArgs = "-la";
+	}
+	else
+	{
+		badOsCommand = "cmd.exe";
+		commandArgs = "/C dir";
+	}
+	using (Process process = new Process())
+	{
+		ProcessStartInfo startInfo = new ProcessStartInfo();
+		startInfo.FileName = badOsCommand;
+		startInfo.Arguments = commandArgs;
+		process.StartInfo = startInfo;
+		process.StartInfo.UseShellExecute = false;
+		process.Start();
+	}"""
+
+[[sinks]]
+name = "PathTraversal"
+cwe = 23
+code = """
+	string root = @"current\\directory\\";
+	/* POTENTIAL FLAW: no validation of concatenated value */
+	if (File.Exists(root + input))
+		System.Console.WriteLine("Success");"""
+
+[[sinks]]
+name = "ExternalControl"
+cwe = 15
+code = """
+	string sverName = "";
+	string Name = "";
+	string Username = "";
+	string Password = "";
+	string connetionString = @"Data Source=" + sverName + ";Initial Catalog=" + Name + ";User ID=" + Username + ";Password=" + Password;
+	try
+	{
+		SqlConnection dbConnection = new SqlConnection(connetionString);
+		/* POTENTIAL FLAW: Set the database user name with the value of data
+		 * allowing unauthorized access to a portion of the DB */
+		dbConnection.ConnectionString = @"Data Source=" + "" + ";Initial Catalog=" + "" + ";User ID=" + input + ";Password=" + "";
+		dbConnection.Open();
+	}
+	catch (SqlException exceptSql)
+	{
+		System.Console.WriteLine("error within execution of sql command");
+	}"""
+
+[[sinks]]
+name = "SqlInjection"
+cwe = 89
+code = """
+	string sverName = "";
+	string Name = "";
+	string Username = "";
+	string Password = "";
+	string connetionString = @"Data Source=" + sverName + ";Initial Catalog=" + Name + ";User ID=" + Username + ";Password=" + Password;
+	try
+	{
+		using (SqlConnection dbConnection = new SqlConnection(connetionString))
+		{
+			dbConnection.Open();
+			using (SqlCommand badSqlCommand = new SqlCommand(null, dbConnection))
+			{
+				/* POTENTIAL FLAW: data concatenated into SQL statement used in ExecuteNonQuery(), which could result in SQL Injection */
+				badSqlCommand.CommandText = "insert into users (status) values ('updated') where name='" +input+"'";
+				badSqlCommand.ExecuteNonQuery();
+			}
+		}
+	}
+	catch (SqlException exceptSql)
+	{
+		System.Console.WriteLine("error within sql command execution");
+	}"""
+
+[[sources]]
+name = "TcpConnection"
+code = """
+	data = ""; /* Initialize data */
+	/* Read data using an outbound tcp connection */
+	{
+		try
+		{
+			/* Read data using an outbound tcp connection */
+			using (TcpClient tcpConn = new TcpClient("host.example.org", 39544))
+			{
+				/* read input from socket */
+				using (StreamReader sr = new StreamReader(tcpConn.GetStream()))
+				{
+					/* POTENTIAL FLAW: Read data using an outbound tcp connection */
+					data = sr.ReadLine();
+				}
+			}
+		}
+		catch (IOException exceptIO)
+		{
+			System.Console.WriteLine("error within reading tcp stream");
+		}
+	}"""
+
+[[sources]]
+name = "SqlDatabase"
+code = """
+	data = ""; /* Initialize data */
+	/* Read data from a database */
+	{
+		string sverName = "";
+		string Name = "";
+		string Username = "";
+		string Password = "";
+		string connetionString = @"Data Source=" + sverName + ";Initial Catalog=" + Name + ";User ID=" + Username + ";Password=" + Password;
+		try
+		{
+			using (SqlConnection dbConnection = new SqlConnection(connetionString))
+			{
+				dbConnection.Open();
+				/* prepare and execute a (hardcoded) query */
+				using (SqlCommand command = new SqlCommand(null, dbConnection))
+				{
+					command.CommandText = "select name from users where id=0";
+					command.Prepare();
+					using (SqlDataReader dr = command.ExecuteReader())
+					{
+						/* POTENTIAL FLAW: Read data from a database query SqlDataReader */
+						data = dr.GetString(1);
+					}
+				}
+			}
+		}
+		catch (SqlException exceptSql)
+		{
+			System.Console.WriteLine("error within sql command execution");
+		}
+	}"""
+
+[[sources]]
+name = "Environment"
+code = """
+	/* get environment variable ADD */
+	/* POTENTIAL FLAW: Read data from an environment variable */
+	data = Environment.GetEnvironmentVariable("ADD");"""
+
+[[sources]]
+name = "File"
+code = """
+	data = ""; /* Initialize data */
+	{
+		try
+		{
+			/* read string from file into data */
+			using (StreamReader sr = new StreamReader("data.txt"))
+			{
+				/* POTENTIAL FLAW: Read data from a file */
+				/* This will be reading the first "line" of the file, which
+				 * could be very long if there are little or no newlines in the file */
+				data = sr.ReadLine();
+			}
+		}
+		catch (IOException exceptIO)
+		{
+			System.Console.WriteLine("error within file stream read");
+		}
+	}"""
+
+[[sources]]
+name = "NetClient"
+code = """
+	data = ""; /* Initialize data */
+	/* read input from WebClient */
+	{
+		try
+		{
+			using (WebClient client = new WebClient())
+			{
+				using (StreamReader sr = new StreamReader(client.OpenRead("http://www.example.org/")))
+				{
+					/* POTENTIAL FLAW: Read data from a web server with WebClient */
+					/* This will be reading the first "line" of the response body,
+					* which could be very long if there are no newlines in the HTML */
+					data = sr.ReadLine();
+				}
+			}
+		}
+		catch (IOException exceptIO)
+		{
+			System.Console.WriteLine("error within stream reading");
+		}
+	}"""
+
+[[sources]]
+name = "ReadLine"
+code = """
+	data = ""; /* Initialize data */
+	{
+		/* read user input from console with ReadLine */
+		try
+		{
+			/* POTENTIAL FLAW: Read data from the console using ReadLine */
+			data = Console.ReadLine();
+		}
+		catch (IOException exceptIO)
+		{
+			System.Console.WriteLine("error within console read");
+		}
+	}"""
